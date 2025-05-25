@@ -13,13 +13,20 @@ function App() {
   const [sortField, setSortField] = useState<SortField>('port');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
-  useEffect(() => {
+  // Fetch services (used for initial and polling)
+  const fetchServices = () => {
     fetch('http://localhost:3000/')
       .then((res) => res.json())
       .then((data) => {
         const result = ServicesSchema.safeParse(data);
         if (result.success) {
-          setServices(result.data);
+          setServices((prev) => {
+            // Only update if data is different
+            if (JSON.stringify(prev) !== JSON.stringify(result.data)) {
+              return result.data;
+            }
+            return prev;
+          });
           setLoading(false);
         } else {
           setError('Invalid data from server');
@@ -30,7 +37,13 @@ function App() {
         setError('Failed to load services')
         setLoading(false)
       })
-  }, [])
+  };
+
+  useEffect(() => {
+    fetchServices();
+    const interval = setInterval(fetchServices, 30000); // 30 seconds
+    return () => clearInterval(interval);
+  }, []);
 
   const sortedServices = sortServices(services, sortField, sortDirection);
 
