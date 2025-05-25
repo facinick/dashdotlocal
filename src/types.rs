@@ -13,6 +13,17 @@ pub struct Service {
     pub process: Option<String>,
     pub pid: Option<u32>,
     pub user: Option<String>,
+    pub protocol: Option<String>,
+    pub local_address: Option<String>,
+    pub fd: Option<String>,
+    pub type_field: Option<String>,
+    pub device: Option<String>,
+    pub size_off: Option<String>,
+    pub node: Option<String>,
+    pub command_line: Option<String>,
+    pub exe_path: Option<String>,
+    pub start_time: Option<String>,
+    pub ppid: Option<u32>,
 }
 
 pub trait ServiceDiscovery: Send + Sync {
@@ -25,4 +36,15 @@ pub struct ServiceInfo {
     pub process: Option<String>,
     pub pid: Option<u32>,
     pub user: Option<String>,
+    pub protocol: Option<String>,
+    pub local_address: Option<String>,
+    pub fd: Option<String>,
+    pub type_field: Option<String>,
+    pub device: Option<String>,
+    pub size_off: Option<String>,
+    pub node: Option<String>,
+    pub command_line: Option<String>,
+    pub exe_path: Option<String>,
+    pub start_time: Option<String>,
+    pub ppid: Option<u32>,
 }
