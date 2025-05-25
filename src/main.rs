@@ -4,11 +4,13 @@ mod types;
 use axum::{
     Json, Router,
     extract::Path,
+    extract::Query,
     response::IntoResponse,
     response::sse::{Event, Sse},
     routing::get,
 };
 use futures_core::Stream;
+use serde::Deserialize;
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -19,6 +21,22 @@ use tower_http::cors::{Any, CorsLayer};
 
 use crate::services::{MacServiceDiscovery, get_service, scan_services};
 use crate::types::{Service, ServiceDiscovery};
+
+#[derive(Deserialize)]
+struct ListServicesParams {
+    sort_by: Option<String>,
+    sort_order: Option<String>,
+    page: Option<usize>,
+    page_size: Option<usize>,
+}
+
+#[derive(serde::Serialize)]
+struct PaginatedServices {
+    data: Vec<Service>,
+    total: usize,
+    page: usize,
+    page_size: usize,
+}
 
 #[tokio::main]
 async fn main() {
@@ -69,14 +87,78 @@ async fn main() {
 }
 
 async fn list_services(
+    Query(params): Query<ListServicesParams>,
     axum::extract::State((service_cache, ..)): axum::extract::State<(
         Arc<Mutex<Vec<Service>>>,
         Arc<dyn ServiceDiscovery>,
         Arc<broadcast::Sender<Vec<Service>>>,
     )>,
-) -> Json<Vec<Service>> {
+) -> Json<PaginatedServices> {
     let cache = service_cache.lock().unwrap();
-    Json(cache.clone())
+    let mut services = cache.clone();
+    let total = services.len();
+
+    // Sorting
+    let sort_by = params.sort_by.as_deref().unwrap_or("port");
+    let sort_order = params.sort_order.as_deref().unwrap_or("asc");
+    let valid_fields = [
+        "port",
+        "status",
+        "process",
+        "pid",
+        "user",
+        "protocol",
+        "local_address",
+        "fd",
+        "type_field",
+        "device",
+        "size_off",
+        "node",
+        "command_line",
+        "exe_path",
+        "start_time",
+        "ppid",
+    ];
+    if valid_fields.contains(&sort_by) {
+        services.sort_by(|a, b| {
+            let ord = match sort_by {
+                "port" => a.port.cmp(&b.port),
+                "status" => a.status.cmp(&b.status),
+                "process" => a.process.cmp(&b.process),
+                "pid" => a.pid.cmp(&b.pid),
+                "user" => a.user.cmp(&b.user),
+                "protocol" => a.protocol.cmp(&b.protocol),
+                "local_address" => a.local_address.cmp(&b.local_address),
+                "fd" => a.fd.cmp(&b.fd),
+                "type_field" => a.type_field.cmp(&b.type_field),
+                "device" => a.device.cmp(&b.device),
+                "size_off" => a.size_off.cmp(&b.size_off),
+                "node" => a.node.cmp(&b.node),
+                "command_line" => a.command_line.cmp(&b.command_line),
+                "exe_path" => a.exe_path.cmp(&b.exe_path),
+                "start_time" => a.start_time.cmp(&b.start_time),
+                "ppid" => a.ppid.cmp(&b.ppid),
+                _ => std::cmp::Ordering::Equal,
+            };
+            if sort_order == "desc" {
+                ord.reverse()
+            } else {
+                ord
+            }
+        });
+    }
+
+    // Pagination
+    let page_size = params.page_size.unwrap_or(20).min(100);
+    let page = params.page.unwrap_or(1).max(1);
+    let start = (page - 1) * page_size;
+    let paged = services.into_iter().skip(start).take(page_size).collect();
+    Json(PaginatedServices {
+        data: paged,
+        total,
+        page,
+        page_size,
+    })
 }
 
 async fn service_detail(
