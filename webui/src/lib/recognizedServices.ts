@@ -70,6 +70,17 @@ export const recognizedServices: RecognizedService[] = [
         svc.port === 11434
       ),
   },
+  {
+    id: 'adguard',
+    label: 'AdGuard Home',
+    color: '#00bfae', // AdGuard's brand color
+    matcher: (svc) =>
+      !!(
+        svc.process?.toLowerCase().includes('adguard') ||
+        svc.command_line?.toLowerCase().includes('adguard') ||
+        svc.port === 4000
+      ),
+  },
   // Add more as needed...
 ];
 
