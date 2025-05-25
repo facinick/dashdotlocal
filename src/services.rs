@@ -14,13 +14,10 @@ impl ServiceDiscovery for MacServiceDiscovery {
             .output();
         if let Ok(output) = output {
             let stdout = String::from_utf8_lossy(&output.stdout);
-            println!("[DEBUG] Raw lsof output:\n{}", stdout);
             let mut infos = Vec::new();
             for line in stdout.lines().skip(1) {
-                println!("[DEBUG] Parsing line: {}", line);
                 let parts: Vec<&str> = line.split_whitespace().collect();
                 if parts.len() < 9 {
-                    println!("[DEBUG] Skipping line (not enough columns): {}", line);
                     continue;
                 }
                 let process = Some(parts[0].to_string());
@@ -39,7 +36,6 @@ impl ServiceDiscovery for MacServiceDiscovery {
                     (None, None, None, None)
                 };
                 if let Some(port) = port {
-                    println!("[DEBUG] Extracted port {} from: {}", port, name);
                     infos.push(ServiceInfo {
                         port,
                         process: process.clone(),
@@ -58,7 +54,6 @@ impl ServiceDiscovery for MacServiceDiscovery {
                         ppid,
                     });
                 } else {
-                    println!("[DEBUG] Could not extract port from: {}", name);
                 }
             }
             // Deduplicate by (process, pid, port)
@@ -69,7 +64,6 @@ impl ServiceDiscovery for MacServiceDiscovery {
             });
             infos
         } else {
-            println!("[DEBUG] Failed to run lsof");
             Vec::new()
         }
     }
