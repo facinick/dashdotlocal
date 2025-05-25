@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import './App.css';
-import { getRecognizedService } from './recognizedServices';
-import type { Service } from './serviceSchema';
-import { ServicesSchema } from './serviceSchema';
-import type { SortDirection, SortField } from './sorting';
-import { sortDirections, sortFields, sortServices } from './sorting';
+
+import { getRecognizedService } from '../../lib/recognizedServices';
+import { type Service, ServicesSchema } from '../../lib/serviceSchema';
+import type { SortDirection, SortField } from '../../lib/sorting';
+import { sortDirections, sortFields, sortServices } from '../../lib/sorting';
+
 
 function App() {
   const [services, setServices] = useState<Service[]>([])

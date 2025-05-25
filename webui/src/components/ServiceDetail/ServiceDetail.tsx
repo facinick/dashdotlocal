@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import type { Service } from './serviceSchema';
-import { ServiceSchema } from './serviceSchema';
+import { type Service, ServiceSchema } from '../../lib/serviceSchema';
+
 
 function ServiceDetail() {
   const { port } = useParams();
