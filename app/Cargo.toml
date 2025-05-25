@@ -13,3 +13,7 @@ tower = "0.4"
 tokio-stream = { version = "0.1.17", features = ["sync"] }
 tower-http = { version = "0.6.4", features = ["cors"] }
 futures-core = "0.3.31"
+
+[[bin]]
+name = "dashdotlocal"
+path = "src/main.rs"
