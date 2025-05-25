@@ -25,6 +25,84 @@ const ServicesSchema = z.array(ServiceSchema);
 
 export type Service = z.infer<typeof ServiceSchema>;
 
+// --- Recognizable Service System ---
+export type RecognizedService = {
+  id: string;
+  label: string;
+  matcher: (svc: Service) => boolean;
+  color: string; // for tag styling
+};
+
+export const recognizedServices: RecognizedService[] = [
+  {
+    id: 'docker',
+    label: 'Docker',
+    color: '#2496ed',
+    matcher: (svc) =>
+      !!(svc.process?.toLowerCase() === 'dockerd' ||
+        svc.command_line?.toLowerCase().includes('docker')),
+  },
+  {
+    id: 'vite',
+    label: 'Vite',
+    color: '#646cff',
+    matcher: (svc) =>
+      !!(svc.command_line?.toLowerCase().includes('vite') ||
+        svc.process?.toLowerCase() === 'vite'),
+  },
+  {
+    id: 'node',
+    label: 'Node.js',
+    color: '#43853d',
+    matcher: (svc) =>
+      !!(svc.process?.toLowerCase() === 'node' ||
+        svc.command_line?.toLowerCase().includes('node')),
+  },
+  {
+    id: 'mongodb',
+    label: 'MongoDB',
+    color: '#47a248',
+    matcher: (svc) =>
+      !!(svc.process?.toLowerCase() === 'mongod' ||
+        svc.command_line?.toLowerCase().includes('mongod') ||
+        svc.port === 27017),
+  },
+  {
+    id: 'postgres',
+    label: 'PostgreSQL',
+    color: '#336791',
+    matcher: (svc) =>
+      !!(svc.process?.toLowerCase().includes('postgres') ||
+        svc.command_line?.toLowerCase().includes('postgres') ||
+        svc.port === 5432),
+  },
+  {
+    id: 'redis',
+    label: 'Redis',
+    color: '#d82c20',
+    matcher: (svc) =>
+      !!(svc.process?.toLowerCase().includes('redis') ||
+        svc.command_line?.toLowerCase().includes('redis') ||
+        svc.port === 6379),
+  },
+  {
+    id: 'ollama',
+    label: 'Ollama',
+    color: '#222',
+    matcher: (svc) =>
+      !!(
+        svc.process?.toLowerCase() === 'ollama' ||
+        svc.command_line?.toLowerCase().includes('ollama') ||
+        svc.port === 11434
+      ),
+  },
+  // Add more as needed...
+];
+
+function getRecognizedService(svc: Service): RecognizedService | undefined {
+  return recognizedServices.find((rec) => rec.matcher(svc));
+}
+
 function App() {
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
@@ -64,19 +142,40 @@ function App() {
               <th>PID</th>
               <th>User</th>
               <th>Command</th>
+              <th>Type</th>
             </tr>
           </thead>
           <tbody>
-            {services.map((svc) => (
-              <tr key={svc.port}>
-                <td>{svc.port}</td>
-                <td>{svc.status}</td>
-                <td>{svc.process}</td>
-                <td>{svc.pid}</td>
-                <td>{svc.user}</td>
-                <td>{svc.command_line}</td>
-              </tr>
-            ))}
+            {services.map((svc) => {
+              const recognized = getRecognizedService(svc);
+              return (
+                <tr key={svc.port}>
+                  <td>{svc.port}</td>
+                  <td>{svc.status}</td>
+                  <td>{svc.process}</td>
+                  <td>{svc.pid}</td>
+                  <td>{svc.user}</td>
+                  <td>{svc.command_line}</td>
+                  <td>
+                    {recognized && (
+                      <span
+                        style={{
+                          background: recognized.color,
+                          color: '#fff',
+                          borderRadius: 4,
+                          padding: '2px 8px',
+                          fontSize: 12,
+                          fontWeight: 600,
+                        }}
+                        title={recognized.label}
+                      >
+                        {recognized.label}
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       )}
