@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import './App.css';
 import { getRecognizedService } from './recognizedServices';
 import type { Service } from './serviceSchema';
@@ -88,7 +89,7 @@ function App() {
               const recognized = getRecognizedService(svc);
               return (
                 <tr key={svc.port}>
-                  <td>{svc.port}</td>
+                  <td><Link to={`/${svc.port}`}>{svc.port}</Link></td>
                   <td>{svc.status}</td>
                   <td>{svc.process}</td>
                   <td>{svc.pid}</td>

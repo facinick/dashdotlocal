@@ -35,8 +35,8 @@ export function sortServices(
   direction: SortDirection
 ): Service[] {
   const sorted = [...services].sort((a, b) => {
-    let aValue: any;
-    let bValue: any;
+    let aValue: string | number | boolean;
+    let bValue: string | number | boolean;
     if (field === 'recognized') {
       aValue = !!getRecognizedService(a);
       bValue = !!getRecognizedService(b);
