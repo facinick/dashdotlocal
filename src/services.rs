@@ -1,4 +1,5 @@
 use crate::types::{Service, ServiceDiscovery, ServiceInfo, ServiceStatus};
+use std::collections::HashSet;
 use std::process::Command;
 use std::str;
 use tokio::net::TcpStream;
@@ -60,6 +61,12 @@ impl ServiceDiscovery for MacServiceDiscovery {
                     println!("[DEBUG] Could not extract port from: {}", name);
                 }
             }
+            // Deduplicate by (process, pid, port)
+            let mut seen = HashSet::new();
+            infos.retain(|info| {
+                let key = (info.process.clone(), info.pid, info.port);
+                seen.insert(key)
+            });
             infos
         } else {
             println!("[DEBUG] Failed to run lsof");
